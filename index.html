@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonus Simulator</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --heading: #1a252f;
+            --border: #dcdde1;
+            --input-bg: #ffffff;
+            --box-bg: #f1f2f6;
+            --winner-bg: #e8f8f5;
+            --winner-border: #1abc9c;
+            --tab-bg: #dfe4ea;
+            --tab-active-bg: #2980b9;
+            --tab-active-text: #fff;
+        }
+
+        [data-theme="dark"] {
+            --bg: #111318;
+            --card-bg: #1c1f26;
+            --text: #d2d6dc;
+            --heading: #ffffff;
+            --border: #2f3542;
+            --input-bg: #262b36;
+            --box-bg: #222630;
+            --winner-bg: #12352c;
+            --winner-border: #1abc9c;
+            --tab-bg: #2f3542;
+            --tab-active-bg: #3498db;
+            --tab-active-text: #fff;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 15px;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: var(--heading);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media(min-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--heading);
+            cursor: help;
+        }
+
+        .badge-current {
+            background: #d4efdf;
+            color: #196f3d;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        .badge-new {
+            background: #ebf5fb;
+            color: #2471a3;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        [data-theme="dark"] .badge-current {
+            background: #145a32;
+            color: #a9dfbf;
+        }
+
+        [data-theme="dark"] .badge-new {
+            background: #1b4f72;
+            color: #a9cce3;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 15px;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .option-fieldset {
+            border: 1px dashed var(--border);
+            padding: 0;
+            border-radius: 6px;
+            margin-top: 15px;
+            background: var(--box-bg);
+            display: none;
+            overflow: hidden;
+        }
+
+        .option-fieldset.active {
+            display: block;
+        }
+
+        .fieldset-header {
+            padding: 12px 15px;
+            font-weight: bold;
+            color: var(--heading);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.03);
+            user-select: none;
+        }
+
+        .fieldset-header:hover {
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        .fieldset-content {
+            padding: 15px;
+            display: none;
+            border-top: 1px dashed var(--border);
+        }
+
+        .fieldset-content.open {
+            display: block;
+        }
+
+        .conditional-shared {
+            display: none;
+        }
+
+        .conditional-shared.active {
+            display: block;
+        }
+
+        .audit-accordion {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 12px;
+            background: var(--card-bg);
+            overflow: hidden;
+        }
+
+        .audit-header {
+            padding: 14px 18px;
+            font-weight: bold;
+            color: var(--heading);
+            cursor: pointer;
+            background: var(--box-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .audit-body {
+            padding: 18px;
+            display: none;
+            border-top: 1px solid var(--border);
+        }
+
+        .audit-body.open {
+            display: block;
+        }
+
+        .year-accordion {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: 12px;
+            background: var(--card-bg);
+            overflow: hidden;
+        }
+
+        .year-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--heading);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--box-bg);
+            user-select: none;
+        }
+
+        .year-body {
+            padding: 16px;
+            display: none;
+            border-top: 1px solid var(--border);
+        }
+
+        .year-body.open {
+            display: block;
+        }
+
+        .calc-block {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-top: 3px solid #3498db;
+            border-radius: 6px;
+            padding: 16px 18px;
+            margin: 14px 0;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .calc-block-title {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--heading);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .matrix-table,
+        .tax-table,
+        .boundary-table,
+        .companion-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .matrix-table th,
+        .matrix-table td,
+        .tax-table th,
+        .tax-table td,
+        .boundary-table th,
+        .boundary-table td,
+        .companion-table th,
+        .companion-table td {
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .matrix-table th,
+        .tax-table th,
+        .boundary-table th,
+        .companion-table th {
+            background: var(--box-bg);
+            color: var(--heading);
+            font-weight: 600;
+        }
+
+        .matrix-table tr:hover,
+        .companion-table tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .boundary-table td {
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .boundary-table td:hover {
+            filter: brightness(0.95);
+        }
+
+        .compare-btn {
+            width: 100%;
+            background: #2980b9;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            box-shadow: 0 4px 6px rgba(41, 128, 185, 0.2);
+            margin-top: 15px;
+        }
+
+        .compare-btn:hover {
+            background: #2471a3;
+        }
+
+        #outputContainer {
+            display: none;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+        }
+
+        .result-box {
+            background: var(--box-bg);
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+        }
+
+        .winner {
+            border: 2px solid var(--winner-border);
+            background: var(--winner-bg);
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #2980b9;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: var(--box-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: var(--tab-bg);
+            color: var(--text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: var(--tab-active-bg);
+            color: var(--tab-active-text);
+        }
+
+        .section-pane {
+            display: none;
+        }
+
+        .section-pane.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+
+    <div class="header-container">
+        <h1 style="margin: 0;">SG Tech Career Simulator</h1>
+        <button class="theme-toggle-btn" onclick="UIController.toggleTheme()">
+            <span id="themeIcon">🌙</span> <span id="themeText">Dark Mode</span>
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>Variable Inputs Form</h3>
+        <p style="font-size: 13px; margin-bottom: 15px;">Select career pathways to compare side-by-side:</p>
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 20px;">
+            <label class="checkbox-group"><input type="checkbox" id="chkOptA" checked
+                    onchange="UIController.toggleFieldsets()"> Leaving at 30 (0 Bonuses)</label>
+            <label class="checkbox-group"><input type="checkbox" id="chkOptB" checked
+                    onchange="UIController.toggleFieldsets()"> Leaving at 31 (ENHANCED 6-mo Bonus at 29)</label>
+            <label class="checkbox-group"><input type="checkbox" id="chkOptC" checked
+                    onchange="UIController.toggleFieldsets()"> Leaving at 32+ (CURRENT 12-mo Bonus at 32)</label>
+            <label class="checkbox-group"><input type="checkbox" id="chkOptD" checked
+                    onchange="UIController.toggleFieldsets()"> Leaving at 34+ (ENHANCED 6-mo Bonuses at BOTH)</label>
+        </div>
+
+        <div style="background: var(--box-bg); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 10px;">Default Shared Fields</div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Current Org Bonus Factor (mos/yr): <span class="badge-current">Current Job</span></label>
+                    <input type="number" id="bonusFactorCurrent" value="13.5" step="0.25">
+                </div>
+                <div class="input-group">
+                    <label>New Org Bonus Factor (mos/yr): <span class="badge-new">New Job</span></label>
+                    <input type="number" id="bonusFactorNew" value="14.0" step="0.5">
+                </div>
+                <div class="input-group conditional-shared" id="sharedPay29Container">
+                    <label>Monthly Base Salary at Age 29 (SGD): <span class="badge-current">Current Job</span></label>
+                    <input type="number" id="shared_pay29" value="7000" step="250">
+                </div>
+                <div class="input-group conditional-shared" id="sharedAvg30_31Container">
+                    <label>Average Base Salary (Ages 30-31) (SGD): <span class="badge-current">Current
+                            Job</span></label>
+                    <input type="number" id="shared_avg30_31" value="9500" step="250">
+                </div>
+                <div class="input-group conditional-shared" id="sharedPay32Container">
+                    <label>Monthly Base Salary at Age 32 (SGD): <span class="badge-current">Current Job</span></label>
+                    <input type="number" id="shared_pay32" value="12000" step="250">
+                </div>
+            </div>
+        </div>
+
+        <div id="fsOptA" class="option-fieldset">
+            <div class="fieldset-header" onclick="UIController.toggleAccordion('contentOptA', this)"><span>Leaving at 30
+                    (0 Bonuses)</span><span>▼</span></div>
+            <div id="contentOptA" class="fieldset-content">
+                <div class="grid-2">
+                    <div class="input-group"><label>New Job Monthly Base Salary (Ages 30-34): <span
+                                class="badge-new">New Job</span></label><input type="number" id="optA_pay30_34"
+                            value="11500" step="250"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="fsOptB" class="option-fieldset">
+            <div class="fieldset-header" onclick="UIController.toggleAccordion('contentOptB', this)"><span>Leaving at 31
+                    (NEW 6-mo Bonus)</span><span>▼</span></div>
+            <div id="contentOptB" class="fieldset-content">
+                <div class="grid-2">
+                    <div class="input-group"><label>New Job Monthly Base Salary (Ages 32-34): <span
+                                class="badge-new">New Job</span></label><input type="number" id="optB_newPay32_34"
+                            value="12000" step="250"></div>
+                    <div class="input-group"><label>Investment Strategy for Age 29 Bonus:</label><select
+                            id="optB_investChoice">
+                            <option value="invest">Fully Invest Bonus</option>
+                            <option value="cash">Zero-Yield Cash</option>
+                        </select></div>
+                    <div class="input-group"><label>Expected ROI after investing NEW bonus from age 29-32
+                            (%):</label><input type="number" id="optB_marketReturn" value="8.0" step="0.5"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="fsOptC" class="option-fieldset">
+            <div class="fieldset-header" onclick="UIController.toggleAccordion('contentOptC', this)"><span>Leaving at
+                    32+ (CURRENT 12-mo Bonus)</span><span>▼</span></div>
+            <div id="contentOptC" class="fieldset-content">
+                <div class="grid-2">
+                    <div class="input-group"><label>Average Base Salary (Ages 29-31): <span
+                                class="badge-current">Current Job</span></label><input type="number" id="optC_avg29_31"
+                            value="8500" step="250"></div>
+                    <div class="input-group"><label>New Job Monthly Base Salary (Ages 33-34): <span
+                                class="badge-new">New Job</span></label><input type="number" id="optC_pay33_34"
+                            value="13500" step="250"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="fsOptD" class="option-fieldset">
+            <div class="fieldset-header" onclick="UIController.toggleAccordion('contentOptD', this)"><span>Leaving at
+                    34+ (Two NEW 6-mo Bonuses)</span><span>▼</span></div>
+            <div id="contentOptD" class="fieldset-content">
+                <div class="grid-2">
+                    <div class="input-group"><label>Average Base Salary (Ages 33-34): <span
+                                class="badge-current">Current Job</span></label><input type="number" id="optD_avg33_34"
+                            value="13500" step="250"></div>
+                    <div class="input-group"><label>Investment Strategy for Age 29 Bonus:</label><select
+                            id="optD_investChoice">
+                            <option value="invest">Fully Invest Bonus</option>
+                            <option value="cash">Zero-Yield Cash</option>
+                        </select></div>
+                    <div class="input-group"><label>Expected ROI after investing NEW bonus from age 29-32
+                            (%):</label><input type="number" id="optD_marketReturn" value="8.0" step="0.5"></div>
+                </div>
+            </div>
+        </div>
+
+        <button class="compare-btn" onclick="UIController.runSimulation()">Compare Selected Options</button>
+    </div>
+
+    <div id="outputContainer">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="UIController.switchTab(event, 'calcTab')">Results & Visual
+                Analytics</button>
+            <button class="tab-btn" onclick="UIController.switchTab(event, 'crossoverTab')">Explore Variables & Strategy
+                Matrix</button>
+        </div>
+
+        <div id="calcTab" class="section-pane active">
+            <div class="card">
+                <h3>Total Earnings Comparison at Age 34</h3>
+                <div id="resultsGrid" class="results-grid"></div>
+                <p style="margin-top: 15px; font-weight: bold; font-size: 15px; text-align: center;" id="verdictText">
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>Side-by-Side Comparison Matrix</h3>
+                <div id="matrixTableContainer" style="overflow-x: auto;"></div>
+            </div>
+
+            <div class="card">
+                <h3>Net Wealth Trajectory (Ages 29–34)</h3>
+                <p style="font-size: 12px; color: var(--text);">Year-by-year compounding growth comparison.</p>
+                <div class="chart-container" style="height: 320px;">
+                    <svg id="trajectorySvg" width="100%" height="100%" viewBox="0 0 500 320"
+                        preserveAspectRatio="none"></svg>
+                </div>
+                <div id="trajectoryLegend" class="chart-legend" style="font-size: 11px;"></div>
+            </div>
+
+            <div class="card">
+                <h2>Detailed Calculations Breakdown & Audit Trail</h2>
+                <div id="auditTrailContent"></div>
+            </div>
+        </div>
+
+        <div id="crossoverTab" class="section-pane">
+            <div class="card">
+                <h3>Explore how single variables change results</h3>
+                <div class="input-group" style="max-width: 400px;">
+                    <label>Select Crossover Variable to Vary (Shared & Option-Specific):</label>
+                    <select id="crossoverVar" onchange="UIController.handleCrossoverChange()"></select>
+                </div>
+                <div class="chart-container">
+                    <svg id="crossoverSvg" width="100%" height="100%" viewBox="0 0 650 400"
+                        preserveAspectRatio="none"></svg>
+                </div>
+                <div id="crossoverLegend" class="chart-legend"></div>
+                <div id="crossoverInfo" style="margin-top: 15px; font-weight: 600;"></div>
+
+                <h4 style="margin-top: 25px;">Companion Variable Sweep Data Table</h4>
+                <div id="crossoverTableContainer" style="overflow-x: auto;"></div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 Multi-Dimensional Decision Boundary Matrix</h3>
+                <p style="font-size: 13px; color: var(--text);">Mapping out when a specific strategy becomes optimal
+                    based on salary combinations across milestones. Click any cell to inspect exact metrics for that
+                    intersection.</p>
+                <div id="boundaryInsights"
+                    style="background: var(--box-bg); padding: 15px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; line-height: 1.6;">
+                </div>
+                <div id="boundaryTableContainer" style="overflow-x: auto;"></div>
+                <div id="boundaryCellDetail" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TaxCalculator {
+            static calculateTax(annualIncome) {
+                let brackets = [
+                    { limit: 20000, rate: 0.00 }, { limit: 10000, rate: 0.02 }, { limit: 10000, rate: 0.035 },
+                    { limit: 40000, rate: 0.07 }, { limit: 40000, rate: 0.115 }, { limit: 40000, rate: 0.15 },
+                    { limit: 40000, rate: 0.18 }, { limit: 40000, rate: 0.19 }, { limit: 40000, rate: 0.195 },
+                    { limit: 40000, rate: 0.20 }, { limit: 180000, rate: 0.22 }, { limit: 500000, rate: 0.23 }, { limit: Infinity, rate: 0.24 }
+                ];
+                let tax = 0, remaining = annualIncome, breakdown = [], highestRateHit = "0%";
+                for (let b of brackets) {
+                    if (remaining <= 0) break;
+                    let taxableInTier = Math.min(remaining, b.limit), taxInTier = taxableInTier * b.rate;
+                    tax += taxInTier;
+                    breakdown.push({ taxable: taxableInTier, rate: b.rate * 100, tax: taxInTier });
+                    if (taxableInTier > 0) highestRateHit = `${b.rate * 100}%`;
+                    remaining -= taxableInTier;
+                }
+                return { totalTax: tax, breakdown, highestRateHit };
+            }
+        }
+
+        class CPFEngine {
+            static calculateYearlyCPF(monthlyBase, annualBonus = 0) {
+                let taxableMonthlyOW = Math.min(monthlyBase, 8000);
+                let annualOWSubject = taxableMonthlyOW * 12;
+                let taxableAW = Math.min(annualBonus, Math.max(0, 102000 - annualOWSubject));
+                let totalEmployeeCPF = (annualOWSubject + taxableAW) * 0.20;
+                let totalEmployerCPF = (annualOWSubject + taxableAW) * 0.17;
+                let combinedCPF = totalEmployeeCPF + totalEmployerCPF;
+                return {
+                    employeeCPF: totalEmployeeCPF, employerCPF: totalEmployerCPF, combinedCPF,
+                    oaAlloc: combinedCPF * 0.6217, saAlloc: combinedCPF * 0.1621, maAlloc: combinedCPF * 0.2162
+                };
+            }
+        }
+
+        class Simulator {
+            static runSingleOption(optKey, inputs) {
+                let bfC = parseFloat(inputs.bonusFactorCurrent), bfN = parseFloat(inputs.bonusFactorNew);
+                let auditYears = {}, cumulativeNetWealth = 0, cumulativeTax = 0;
+                let cpfOA = 0, cpfSA = 0, cpfMA = 0;
+                let wealthByAge = {};
+
+                let compoundCPF = (alloc) => {
+                    cpfOA = (cpfOA + alloc.oaAlloc) * 1.025;
+                    cpfSA = (cpfSA + alloc.saAlloc) * 1.04;
+                    cpfMA = (cpfMA + alloc.maAlloc) * 1.04;
+                };
+
+                let recordYearWealth = (age) => {
+                    wealthByAge[age] = cumulativeNetWealth + (cpfOA + cpfSA + cpfMA);
+                };
+
+                let pay29 = parseFloat(inputs.shared_pay29);
+                let avg30_31 = parseFloat(inputs.shared_avg30_31);
+                let pay32 = parseFloat(inputs.shared_pay32);
+
+                if (optKey === 'optA') {
+                    let pNew = parseFloat(inputs.optA_pay30_34);
+                    [
+                        { age: 29, base: pay29, bonus: 0, bf: bfC }, { age: 30, base: pNew, bonus: 0, bf: bfN },
+                        { age: 31, base: pNew, bonus: 0, bf: bfN }, { age: 32, base: pNew, bonus: 0, bf: bfN },
+                        { age: 33, base: pNew, bonus: 0, bf: bfN }, { age: 34, base: pNew, bonus: 0, bf: bfN }
+                    ].forEach(s => {
+                        let grossSalary = s.base * s.bf, cpf = CPFEngine.calculateYearlyCPF(s.base, s.bonus);
+                        compoundCPF(cpf);
+                        let taxableIncome = Math.max(0, grossSalary - cpf.employeeCPF), tax = TaxCalculator.calculateTax(taxableIncome);
+                        let netCashFlow = grossSalary - cpf.employeeCPF - tax.totalTax, totalEarnings = netCashFlow + cpf.combinedCPF;
+                        cumulativeNetWealth += netCashFlow; cumulativeTax += tax.totalTax;
+                        auditYears[s.age] = { grossSalary, cpf, taxableIncome, tax, netCashFlow, totalEarnings };
+                        recordYearWealth(s.age);
+                    });
+                } else if (optKey === 'optB') {
+                    let newPay32_34 = parseFloat(inputs.optB_newPay32_34);
+                    let investChoice = inputs.optB_investChoice, roi = parseFloat(inputs.optB_marketReturn) / 100;
+                    let bonus29 = pay29 * 6, gross29 = (pay29 * bfC) + bonus29, cpf29 = CPFEngine.calculateYearlyCPF(pay29, bonus29);
+                    compoundCPF(cpf29);
+                    let taxable29 = Math.max(0, gross29 - cpf29.employeeCPF), tax29 = TaxCalculator.calculateTax(taxable29);
+                    let netCash29 = gross29 - cpf29.employeeCPF - tax29.totalTax;
+                    let cpf29Wo = CPFEngine.calculateYearlyCPF(pay29, 0);
+                    let takeHome29Wo = (pay29 * bfC) - cpf29Wo.employeeCPF - TaxCalculator.calculateTax(Math.max(0, (pay29 * bfC) - cpf29Wo.employeeCPF)).totalTax;
+                    let netBonus29 = netCash29 - takeHome29Wo, investedBonusVal = netBonus29;
+                    if (investChoice === 'invest') { for (let yr = 0; yr < 5; yr++) investedBonusVal *= (1 + roi); }
+                    let totalEarnings29 = takeHome29Wo + cpf29.combinedCPF + (investedBonusVal - netBonus29);
+                    cumulativeNetWealth += takeHome29Wo + investedBonusVal; cumulativeTax += tax29.totalTax;
+                    auditYears[29] = { grossSalary: gross29, milestone: bonus29, cpf: cpf29, taxableIncome: taxable29, tax: tax29, netCashFlow: takeHome29Wo, totalEarnings: totalEarnings29 };
+                    recordYearWealth(29);
+
+                    [
+                        { age: 30, base: avg30_31, bf: bfC }, { age: 31, base: avg30_31, bf: bfC },
+                        { age: 32, base: newPay32_34, bf: bfN }, { age: 33, base: newPay32_34, bf: bfN }, { age: 34, base: newPay32_34, bf: bfN }
+                    ].forEach(s => {
+                        let grossSalary = s.base * s.bf, cpf = CPFEngine.calculateYearlyCPF(s.base, 0);
+                        compoundCPF(cpf);
+                        let taxableIncome = Math.max(0, grossSalary - cpf.employeeCPF), tax = TaxCalculator.calculateTax(taxableIncome);
+                        let netCashFlow = grossSalary - cpf.employeeCPF - tax.totalTax, totalEarnings = netCashFlow + cpf.combinedCPF;
+                        cumulativeNetWealth += netCashFlow; cumulativeTax += tax.totalTax;
+                        auditYears[s.age] = { grossSalary, cpf, taxableIncome, tax, netCashFlow, totalEarnings };
+                        recordYearWealth(s.age);
+                    });
+                } else if (optKey === 'optC') {
+                    let avg29_31 = parseFloat(inputs.optC_avg29_31), pay33_34 = parseFloat(inputs.optC_pay33_34);
+                    [
+                        { age: 29, base: avg29_31, bonus: 0, bf: bfC }, { age: 30, base: avg29_31, bonus: 0, bf: bfC },
+                        { age: 31, base: avg29_31, bonus: 0, bf: bfC }, { age: 32, base: pay32, bonus: pay32 * 12, bf: bfC },
+                        { age: 33, base: pay33_34, bonus: 0, bf: bfN }, { age: 34, base: pay33_34, bonus: 0, bf: bfN }
+                    ].forEach(s => {
+                        let grossSalary = (s.base * s.bf) + s.bonus, cpf = CPFEngine.calculateYearlyCPF(s.base, s.bonus);
+                        compoundCPF(cpf);
+                        let taxableIncome = Math.max(0, grossSalary - cpf.employeeCPF), tax = TaxCalculator.calculateTax(taxableIncome);
+                        let netCashFlow = grossSalary - cpf.employeeCPF - tax.totalTax, totalEarnings = netCashFlow + cpf.combinedCPF;
+                        cumulativeNetWealth += netCashFlow; cumulativeTax += tax.totalTax;
+                        auditYears[s.age] = { grossSalary, cpf, taxableIncome, tax, netCashFlow, milestone: s.bonus, totalEarnings };
+                        recordYearWealth(s.age);
+                    });
+                } else if (optKey === 'optD') {
+                    let avg33_34 = parseFloat(inputs.optD_avg33_34);
+                    let investChoice = inputs.optD_investChoice, roi = parseFloat(inputs.optD_marketReturn) / 100;
+                    let bonus29 = pay29 * 6, gross29 = (pay29 * bfC) + bonus29, cpf29 = CPFEngine.calculateYearlyCPF(pay29, bonus29);
+                    compoundCPF(cpf29);
+                    let taxable29 = Math.max(0, gross29 - cpf29.employeeCPF), tax29 = TaxCalculator.calculateTax(taxable29);
+                    let netCash29 = gross29 - cpf29.employeeCPF - tax29.totalTax;
+                    let cpf29Wo = CPFEngine.calculateYearlyCPF(pay29, 0);
+                    let takeHome29Wo = (pay29 * bfC) - cpf29Wo.employeeCPF - TaxCalculator.calculateTax(Math.max(0, (pay29 * bfC) - cpf29Wo.employeeCPF)).totalTax;
+                    let netBonus29 = netCash29 - takeHome29Wo, bonus29ValAt34 = netBonus29;
+                    if (investChoice === 'invest') { for (let yr = 0; yr < 5; yr++) bonus29ValAt34 *= (1 + roi); }
+                    let totalEarnings29 = takeHome29Wo + cpf29.combinedCPF + (bonus29ValAt34 - netBonus29);
+                    cumulativeNetWealth += takeHome29Wo + bonus29ValAt34; cumulativeTax += tax29.totalTax;
+                    auditYears[29] = { grossSalary: gross29, milestone: bonus29, cpf: cpf29, taxableIncome: taxable29, tax: tax29, netCashFlow: takeHome29Wo, totalEarnings: totalEarnings29 };
+                    recordYearWealth(29);
+
+                    [30, 31].forEach(age => {
+                        let gross = avg30_31 * bfC, cpf = CPFEngine.calculateYearlyCPF(avg30_31, 0);
+                        compoundCPF(cpf);
+                        let taxable = Math.max(0, gross - cpf.employeeCPF), tax = TaxCalculator.calculateTax(taxable);
+                        let net = gross - cpf.employeeCPF - tax.totalTax, totalEarnings = net + cpf.combinedCPF;
+                        cumulativeNetWealth += net; cumulativeTax += tax.totalTax;
+                        auditYears[age] = { grossSalary: gross, cpf, taxableIncome: taxable, tax, netCashFlow: net, totalEarnings };
+                        recordYearWealth(age);
+                    });
+
+                    let bonus32 = pay32 * 6, gross32 = (pay32 * bfC) + bonus32, cpf32 = CPFEngine.calculateYearlyCPF(pay32, bonus32);
+                    compoundCPF(cpf32);
+                    let taxable32 = Math.max(0, gross32 - cpf32.employeeCPF), tax32 = TaxCalculator.calculateTax(taxable32);
+                    let net32 = gross32 - cpf32.employeeCPF - tax32.totalTax, totalEarnings32 = net32 + cpf32.combinedCPF;
+                    cumulativeNetWealth += net32; cumulativeTax += tax32.totalTax;
+                    auditYears[32] = { grossSalary: gross32, milestone: bonus32, cpf: cpf32, taxableIncome: taxable32, tax: tax32, netCashFlow: net32, totalEarnings: totalEarnings32 };
+                    recordYearWealth(32);
+
+                    [33, 34].forEach(age => {
+                        let gross = avg33_34 * bfC, cpf = CPFEngine.calculateYearlyCPF(avg33_34, 0);
+                        compoundCPF(cpf);
+                        let taxable = Math.max(0, gross - cpf.employeeCPF), tax = TaxCalculator.calculateTax(taxable);
+                        let net = gross - cpf.employeeCPF - tax.totalTax, totalEarnings = net + cpf.combinedCPF;
+                        cumulativeNetWealth += net; cumulativeTax += tax.totalTax;
+                        auditYears[age] = { grossSalary: gross, cpf, taxableIncome: taxable, tax, netCashFlow: net, totalEarnings };
+                        recordYearWealth(age);
+                    });
+                }
+
+                let totalCpfBalance = cpfOA + cpfSA + cpfMA;
+                return {
+                    netWealth: cumulativeNetWealth + totalCpfBalance,
+                    liquidCashAndInvestments: cumulativeNetWealth,
+                    totalTax: cumulativeTax,
+                    cpfBreakdown: { OA: cpfOA, SA: cpfSA, MA: cpfMA, total: totalCpfBalance },
+                    wealthByAge,
+                    auditYears
+                };
+            }
+
+            static runAll(inputs, selectedOptions) {
+                let results = {};
+                selectedOptions.forEach(opt => results[opt] = Simulator.runSingleOption(opt, inputs));
+                return results;
+            }
+
+            static getAvailableVariables(selectedOptions) {
+                let groups = [{
+                    label: 'Shared Parameters', vars: [
+                        { key: 'bonusFactorCurrent', label: 'Current Org Bonus Factor [Current Job]' },
+                        { key: 'bonusFactorNew', label: 'New Org Bonus Factor [New Job]' }
+                    ]
+                }];
+
+                let sharedActiveVars = [];
+                if (selectedOptions.includes('optA') || selectedOptions.includes('optB') || selectedOptions.includes('optD')) sharedActiveVars.push({ key: 'shared_pay29', label: 'Monthly Base Salary at Age 29 [Current Job]' });
+                if (selectedOptions.includes('optB') || selectedOptions.includes('optD')) sharedActiveVars.push({ key: 'shared_avg30_31', label: 'Average Base Salary (Ages 30-31) [Current Job]' });
+                if (selectedOptions.includes('optC') || selectedOptions.includes('optD')) sharedActiveVars.push({ key: 'shared_pay32', label: 'Monthly Base Salary at Age 32 [Current Job]' });
+                if (sharedActiveVars.length > 0) groups.push({ label: 'Shared Fields', vars: sharedActiveVars });
+
+                selectedOptions.forEach(opt => {
+                    let optLabel = ChartEngine.labels[opt];
+                    let optVars = [];
+                    if (opt === 'optA') {
+                        optVars.push({ key: 'optA_pay30_34', label: 'New Job Monthly Base Salary (Ages 30-34) [New Job]' });
+                    } else if (opt === 'optB') {
+                        optVars.push({ key: 'optB_newPay32_34', label: 'New Job Monthly Base Salary (Ages 32-34) [New Job]' });
+                        optVars.push({ key: 'optB_marketReturn', label: 'Investment ROI (%)' });
+                    } else if (opt === 'optC') {
+                        optVars.push({ key: 'optC_avg29_31', label: 'Average Base Salary (Ages 29-31) [Current Job]' });
+                        optVars.push({ key: 'optC_pay33_34', label: 'New Job Monthly Base Salary (Ages 33-34) [New Job]' });
+                    } else if (opt === 'optD') {
+                        optVars.push({ key: 'optD_avg33_34', label: 'Average Base Salary (Ages 33-34) [Current Job]' });
+                        optVars.push({ key: 'optD_marketReturn', label: 'Investment ROI (%)' });
+                    }
+                    if (optVars.length > 0) {
+                        groups.push({ label: `Option: ${optLabel}`, vars: optVars });
+                    }
+                });
+
+                return groups;
+            }
+
+            static calculateCrossover(inputs, selectedOptions, varKey) {
+                if (selectedOptions.length < 2) return null;
+                let rawBaseVal = parseFloat(inputs[varKey] !== undefined ? inputs[varKey] : 7000) || 7000;
+                let minVal = Math.max(0, rawBaseVal * 0.5), maxVal = rawBaseVal * 1.5, steps = 20, xValues = [], curves = {}, tableRows = [];
+                selectedOptions.forEach(opt => curves[opt] = []);
+                for (let i = 0; i <= steps; i++) {
+                    let currentX = minVal + (i / steps) * (maxVal - minVal), stepInputs = JSON.parse(JSON.stringify(inputs));
+                    stepInputs[varKey] = currentX;
+                    xValues.push(currentX);
+                    let res = Simulator.runAll(stepInputs, selectedOptions);
+                    let rowData = { xVal: currentX, results: {} };
+                    selectedOptions.forEach(opt => {
+                        curves[opt].push(res[opt].netWealth);
+                        rowData.results[opt] = res[opt].netWealth;
+                    });
+                    tableRows.push(rowData);
+                }
+                return { xValues, curves, tableRows, minVal, maxVal, varKey };
+            }
+
+            static calculateStrategyBoundary(inputs, selectedOptions) {
+                if (selectedOptions.length < 2) return null;
+                let basePay29 = parseFloat(inputs.shared_pay29) || 7000;
+                let basePay32 = parseFloat(inputs.shared_pay32) || 12000;
+
+                let range29 = [basePay29 * 0.7, basePay29, basePay29 * 1.3];
+                let range32 = [basePay32 * 0.7, basePay32, basePay32 * 1.3];
+                let gridResults = [];
+
+                range32.forEach(p32 => {
+                    let row = { pay32: p32, cells: {} };
+                    range29.forEach(p29 => {
+                        let stepInputs = JSON.parse(JSON.stringify(inputs));
+                        stepInputs.shared_pay29 = p29;
+                        stepInputs.shared_pay32 = p32;
+                        let res = Simulator.runAll(stepInputs, selectedOptions);
+                        let bestOpt = selectedOptions[0], bestVal = res[bestOpt].netWealth;
+                        selectedOptions.forEach(opt => { if (res[opt].netWealth > bestVal) { bestVal = res[opt].netWealth; bestOpt = opt; } });
+                        row.cells[p29] = { bestOpt, bestVal, allResults: res };
+                    });
+                    gridResults.push(row);
+                });
+                return { range29, range32, gridResults };
+            }
+        }
+
+        class ChartEngine {
+            static colors = { optA: '#e74c3c', optB: '#3498db', optC: '#1abc9c', optD: '#9b59b6' };
+            static labels = { optA: 'Leaving at 30', optB: 'Leaving at 31', optC: 'Leaving at 32+', optD: 'Leaving at 34+' };
+
+            static drawCrossover(crossover, selectedOptions) {
+                let svg = document.getElementById('crossoverSvg'), info = document.getElementById('crossoverInfo'), legendEl = document.getElementById('crossoverLegend'), tableContainer = document.getElementById('crossoverTableContainer');
+                if (!crossover || selectedOptions.length < 2) {
+                    svg.innerHTML = `<text x="50%" y="50%" fill="var(--text)" text-anchor="middle">Please select at least 2 options.</text>`;
+                    legendEl.innerHTML = ""; info.innerHTML = ""; tableContainer.innerHTML = ""; return;
+                }
+                let xVals = crossover.xValues, curves = crossover.curves, allY = [];
+                selectedOptions.forEach(opt => allY.push(...curves[opt]));
+                let minY = Math.min(...allY), maxY = Math.max(...allY), rangeY = maxY - minY || 1;
+                let svgWidth = 650, svgHeight = 400, pad = 55;
+
+                // Determine unit formatting based on the variable key
+                let varKey = crossover.varKey;
+                let isPercentage = varKey.includes('Return');
+                let isBonusFactor = varKey.includes('bonusFactor');
+                let formatXVal = (val) => {
+                    let rounded = Math.round(val * 10) / 10;
+                    if (isPercentage) return `${rounded}%`;
+                    if (isBonusFactor) return `${rounded} mos`;
+                    return `S$ ${Math.round(val).toLocaleString()}`;
+                };
+
+                let dominantOptSteps = [], intersections = [];
+                for (let i = 0; i < xVals.length; i++) {
+                    let bestOpt = selectedOptions[0], bestVal = curves[bestOpt][i];
+                    selectedOptions.forEach(opt => { if (curves[opt][i] > bestVal) { bestVal = curves[opt][i]; bestOpt = opt; } });
+                    dominantOptSteps.push(bestOpt);
+                    if (i > 0 && dominantOptSteps[i] !== dominantOptSteps[i - 1]) {
+                        intersections.push({ xIndex: i, xVal: xVals[i], fromOpt: dominantOptSteps[i - 1], toOpt: dominantOptSteps[i], yVal: bestVal });
+                    }
+                }
+
+                let pathsHtml = '';
+                selectedOptions.forEach(opt => {
+                    let pts = curves[opt], pathD = '';
+                    for (let i = 0; i < xVals.length; i++) {
+                        let xCoord = pad + (i / (xVals.length - 1)) * (svgWidth - 2 * pad);
+                        let yCoord = svgHeight - pad - ((pts[i] - minY) / rangeY) * (svgHeight - 2 * pad);
+                        pathD += (i === 0 ? `M ${xCoord} ${yCoord}` : ` L ${xCoord} ${yCoord}`);
+                    }
+                    pathsHtml += `<path d="${pathD}" fill="none" stroke="${ChartEngine.colors[opt]}" stroke-width="${opt === dominantOptSteps[xVals.length - 1] ? 3.5 : 2}"/>`;
+                });
+
+                let isDark = document.body.getAttribute('data-theme') === 'dark';
+                legendEl.innerHTML = selectedOptions.map(opt => `<div class="legend-item"><span class="legend-color" style="background: ${ChartEngine.colors[opt]};"></span><span>${ChartEngine.labels[opt]}</span></div>`).join('');
+
+                // Generate Y-Axis ticks and grid lines
+                let yTicksCount = 4, yTicksHtml = '', gridLinesHtml = '';
+                for (let i = 0; i <= yTicksCount; i++) {
+                    let val = minY + (i / yTicksCount) * rangeY;
+                    let yCoord = svgHeight - pad - (i / yTicksCount) * (svgHeight - 2 * pad);
+                    yTicksHtml += `<text x="${pad - 8}" y="${yCoord + 4}" fill="${isDark ? '#a4b0be' : '#718093'}" font-size="10" text-anchor="end">S$ ${Math.round(val).toLocaleString()}</text>`;
+                    if (i > 0 && i < yTicksCount) {
+                        gridLinesHtml += `<line x1="${pad}" y1="${yCoord}" x2="${svgWidth - pad}" y2="${yCoord}" stroke="${isDark ? '#2f3542' : '#dcdde1'}" stroke-dasharray="3,3" stroke-width="1"/>`;
+                    }
+                }
+
+                // Generate X-Axis ticks with correct units
+                let xTicksCount = 5, xTicksHtml = '';
+                for (let i = 0; i <= xTicksCount; i++) {
+                    let idx = Math.round((i / xTicksCount) * (xVals.length - 1));
+                    let val = xVals[idx];
+                    let xCoord = pad + (i / xTicksCount) * (svgWidth - 2 * pad);
+                    let labelText = isPercentage ? `${Math.round(val * 10) / 10}%` : (isBonusFactor ? `${Math.round(val * 10) / 10}` : `S$ ${Math.round(val).toLocaleString()}`);
+                    xTicksHtml += `<text x="${xCoord}" y="${svgHeight - pad + 18}" fill="${isDark ? '#a4b0be' : '#718093'}" font-size="10" text-anchor="middle">${labelText}</text>`;
+                    if (i > 0 && i < xTicksCount) {
+                        gridLinesHtml += `<line x1="${xCoord}" y1="${pad}" x2="${xCoord}" y2="${svgHeight - pad}" stroke="${isDark ? '#2f3542' : '#dcdde1'}" stroke-dasharray="3,3" stroke-width="1"/>`;
+                    }
+                }
+
+                svg.innerHTML = `
+                    <rect width="100%" height="100%" fill="${isDark ? "#1c1f26" : "#ffffff"}" rx="6"/>
+                    ${gridLinesHtml}
+                    <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${svgHeight - pad}" stroke="${isDark ? '#2f3542' : '#dcdde1'}" stroke-width="1.5"/>
+                    <line x1="${pad}" y1="${svgHeight - pad}" x2="${svgWidth - pad}" y2="${svgHeight - pad}" stroke="${isDark ? '#2f3542' : '#dcdde1'}" stroke-width="1.5"/>
+                    ${yTicksHtml}
+                    ${xTicksHtml}
+                    ${pathsHtml}
+                `;
+
+                info.innerHTML = intersections.length > 0 ? intersections.map(i => `Crossover from <strong>${ChartEngine.labels[i.fromOpt]}</strong> to <strong>${ChartEngine.labels[i.toOpt]}</strong> at ~<strong>${formatXVal(i.xVal)}</strong>`).join('<br>') : "No dominant crossover points found.";
+
+                // Build companion data table with correct row headers and max row cell highlighting
+                let tableHeaderLabel = isPercentage ? `${crossover.varKey} (%)` : (isBonusFactor ? `${crossover.varKey} (mos)` : `${crossover.varKey} (SGD)`);
+                let tableHtml = `<table class="companion-table"><thead><tr><th>${tableHeaderLabel}</th>${selectedOptions.map(opt => `<th>${ChartEngine.labels[opt]} Net Wealth</th>`).join('')}</tr></thead><tbody>`;
+
+                crossover.tableRows.forEach(row => {
+                    let bestOptForRow = selectedOptions[0];
+                    let maxValForRow = row.results[bestOptForRow];
+                    selectedOptions.forEach(opt => {
+                        if (row.results[opt] > maxValForRow) {
+                            maxValForRow = row.results[opt];
+                            bestOptForRow = opt;
+                        }
+                    });
+
+                    let rowHeaderVal = isPercentage ? `${Math.round(row.xVal * 10) / 10}%` : (isBonusFactor ? `${Math.round(row.xVal * 10) / 10}` : `S$ ${Math.round(row.xVal).toLocaleString()}`);
+                    tableHtml += `<tr><td><strong>${rowHeaderVal}</strong></td>`;
+                    selectedOptions.forEach(opt => {
+                        let isBest = (opt === bestOptForRow);
+                        let cellStyle = isBest ? `background: ${ChartEngine.colors[opt]}22; font-weight: bold; border-left: 3px solid ${ChartEngine.colors[opt]};` : '';
+                        tableHtml += `<td style="${cellStyle}">S$ ${Math.round(row.results[opt]).toLocaleString()} ${isBest ? '🏆' : ''}</td>`;
+                    });
+                    tableHtml += `</tr>`;
+                });
+                tableHtml += `</tbody></table>`;
+                tableContainer.innerHTML = tableHtml;
+            }
+
+            static drawTrajectory(results, selectedOptions) {
+                let svg = document.getElementById('trajectorySvg'), legendEl = document.getElementById('trajectoryLegend');
+                let ages = [29, 30, 31, 32, 33, 34];
+                let allVals = [];
+                selectedOptions.forEach(opt => {
+                    let w = results[opt].wealthByAge;
+                    ages.forEach(a => { if (w[a] !== undefined) allVals.push(w[a]); });
+                });
+                let minY = Math.min(...allVals) * 0.95, maxY = Math.max(...allVals) * 1.05, rangeY = maxY - minY || 1;
+                let svgW = 500, svgH = 320, pad = 45;
+
+                let pathsHtml = '';
+                selectedOptions.forEach(opt => {
+                    let w = results[opt].wealthByAge, pathD = '';
+                    ages.forEach((a, idx) => {
+                        let val = w[a] || 0;
+                        let x = pad + (idx / (ages.length - 1)) * (svgW - 2 * pad);
+                        let y = svgH - pad - ((val - minY) / rangeY) * (svgH - 2 * pad);
+                        pathD += (idx === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+                    });
+                    pathsHtml += `<path d="${pathD}" fill="none" stroke="${ChartEngine.colors[opt]}" stroke-width="2.5"/>`;
+                });
+
+                let isDark = document.body.getAttribute('data-theme') === 'dark';
+                legendEl.innerHTML = selectedOptions.map(opt => `<div class="legend-item"><span class="legend-color" style="background: ${ChartEngine.colors[opt]};"></span><span>${ChartEngine.labels[opt]}</span></div>`).join('');
+                let xLabelsHtml = ages.map((a, idx) => {
+                    let x = pad + (idx / (ages.length - 1)) * (svgW - 2 * pad);
+                    return `<text x="${x}" y="${svgH - pad + 15}" fill="${isDark ? '#a4b0be' : '#718093'}" font-size="10" text-anchor="middle">Age ${a}</text>`;
+                }).join('');
+
+                svg.innerHTML = `
+                    <rect width="100%" height="100%" fill="${isDark ? "#1c1f26" : "#ffffff"}" rx="6"/>
+                    <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${svgH - pad}" stroke="${isDark ? '#2f3542' : '#dcdde1'}" stroke-width="1.5"/>
+                    <line x1="${pad}" y1="${svgH - pad}" x2="${svgW - pad}" y2="${svgH - pad}" stroke="${isDark ? '#2f3542' : '#dcdde1'}" stroke-width="1.5"/>
+                    ${xLabelsHtml} ${pathsHtml}
+                `;
+            }
+        }
+
+        class UIController {
+            static lastSimData = null;
+            static toggleTheme() {
+                let body = document.body, newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                let icon = document.getElementById('themeIcon'), text = document.getElementById('themeText');
+                if (newTheme === 'dark') { icon.innerText = "☀️"; text.innerText = "Light Mode"; }
+                else { icon.innerText = "🌙"; text.innerText = "Dark Mode"; }
+                if (UIController.lastSimData) {
+                    ChartEngine.drawCrossover(UIController.lastSimData.crossover, UIController.getSelectedOptions());
+                    ChartEngine.drawTrajectory(UIController.lastSimData.results, UIController.getSelectedOptions());
+                }
+            }
+            static toggleFieldsets() {
+                let hasA = document.getElementById('chkOptA').checked;
+                let hasB = document.getElementById('chkOptB').checked;
+                let hasC = document.getElementById('chkOptC').checked;
+                let hasD = document.getElementById('chkOptD').checked;
+
+                ['optA', 'optB', 'optC', 'optD'].forEach(opt => {
+                    let chk = document.getElementById(`chk${opt.charAt(0).toUpperCase() + opt.slice(1)}`);
+                    let fs = document.getElementById(`fs${opt.charAt(0).toUpperCase() + opt.slice(1)}`);
+                    if (chk.checked) fs.classList.add('active'); else fs.classList.remove('active');
+                });
+
+                document.getElementById('sharedPay29Container').classList.toggle('active', hasA || hasB || hasD);
+                document.getElementById('sharedAvg30_31Container').classList.toggle('active', hasB || hasD);
+                document.getElementById('sharedPay32Container').classList.toggle('active', hasC || hasD);
+
+                UIController.updateCrossoverDropdown();
+            }
+            static updateCrossoverDropdown() {
+                let selectedOptions = UIController.getSelectedOptions(), dropdown = document.getElementById('crossoverVar');
+                if (!dropdown) return;
+                let currentVal = dropdown.value, groups = Simulator.getAvailableVariables(selectedOptions), html = '', hasCurrentVal = false;
+                groups.forEach(g => {
+                    html += `<optgroup label="${g.label}">`;
+                    g.vars.forEach(v => {
+                        let isSelected = (v.key === currentVal);
+                        if (isSelected) hasCurrentVal = true;
+                        html += `<option value="${v.key}" ${isSelected ? 'selected' : ''}>${v.label}</option>`;
+                    });
+                    html += `</optgroup>`;
+                });
+                dropdown.innerHTML = html;
+                if (!hasCurrentVal && dropdown.options.length > 0) dropdown.selectedIndex = 0;
+            }
+            static toggleAccordion(contentId, headerEl) {
+                let content = document.getElementById(contentId), isOpen = content.classList.contains('open');
+                let arrow = headerEl.querySelector('span:last-child');
+                if (isOpen) { content.classList.remove('open'); if (arrow) arrow.innerText = '▼'; }
+                else { content.classList.add('open'); if (arrow) arrow.innerText = '▲'; }
+            }
+            static switchTab(evt, tabName) {
+                document.querySelectorAll(".section-pane").forEach(p => p.classList.remove("active"));
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                document.getElementById(tabName).classList.add("active");
+                evt.currentTarget.classList.add("active");
+            }
+            static getSelectedOptions() {
+                let opts = [];
+                if (document.getElementById('chkOptA').checked) opts.push('optA');
+                if (document.getElementById('chkOptB').checked) opts.push('optB');
+                if (document.getElementById('chkOptC').checked) opts.push('optC');
+                if (document.getElementById('chkOptD').checked) opts.push('optD');
+                return opts;
+            }
+            static getInputs() {
+                return {
+                    bonusFactorCurrent: document.getElementById('bonusFactorCurrent').value,
+                    bonusFactorNew: document.getElementById('bonusFactorNew').value,
+                    shared_pay29: document.getElementById('shared_pay29').value,
+                    shared_avg30_31: document.getElementById('shared_avg30_31').value,
+                    shared_pay32: document.getElementById('shared_pay32').value,
+                    optA_pay30_34: document.getElementById('optA_pay30_34').value,
+                    optB_newPay32_34: document.getElementById('optB_newPay32_34').value,
+                    optB_investChoice: document.getElementById('optB_investChoice').value,
+                    optB_marketReturn: document.getElementById('optB_marketReturn').value,
+                    optC_avg29_31: document.getElementById('optC_avg29_31').value,
+                    optC_pay33_34: document.getElementById('optC_pay33_34').value,
+                    optD_avg33_34: document.getElementById('optD_avg33_34').value,
+                    optD_investChoice: document.getElementById('optD_investChoice').value,
+                    optD_marketReturn: document.getElementById('optD_marketReturn').value
+                };
+            }
+            static runSimulation() {
+                let selectedOptions = UIController.getSelectedOptions();
+                if (selectedOptions.length === 0) { alert("Please select at least one option."); return; }
+                let inputs = UIController.getInputs(), results = Simulator.runAll(inputs, selectedOptions);
+                let crossover = Simulator.calculateCrossover(inputs, selectedOptions, document.getElementById('crossoverVar').value);
+                let boundary = Simulator.calculateStrategyBoundary(inputs, selectedOptions);
+                UIController.lastSimData = { results, crossover, boundary };
+                let out = document.getElementById('outputContainer');
+                out.style.display = 'block'; out.classList.remove('animate-reveal');
+                void out.offsetWidth; out.classList.add('animate-reveal');
+                UIController.updateUI(results, crossover, boundary, selectedOptions);
+            }
+            static handleCrossoverChange() {
+                let selectedOptions = UIController.getSelectedOptions(), inputs = UIController.getInputs();
+                let crossover = Simulator.calculateCrossover(inputs, selectedOptions, document.getElementById('crossoverVar').value);
+                if (UIController.lastSimData) UIController.lastSimData.crossover = crossover;
+                ChartEngine.drawCrossover(crossover, selectedOptions);
+            }
+            static updateUI(results, crossover, boundary, selectedOptions) {
+                let grid = document.getElementById('resultsGrid'); grid.innerHTML = '';
+                let bestOpt = selectedOptions[0], bestVal = results[bestOpt].netWealth;
+                selectedOptions.forEach(opt => { if (results[opt].netWealth > bestVal) { bestVal = results[opt].netWealth; bestOpt = opt; } });
+
+                selectedOptions.forEach(opt => {
+                    let res = results[opt], isWinner = (opt === bestOpt);
+                    grid.innerHTML += `
+                        <div class="result-box ${isWinner ? 'winner' : ''}">
+                            <h3>${ChartEngine.labels[opt]} ${isWinner ? '🏆' : ''}</h3>
+                            <p>Total Taxes: <span class="highlight">S$ ${Math.round(res.totalTax).toLocaleString()}</span></p>
+                            <p>Total CPF: <span class="highlight">S$ ${Math.round(res.cpfBreakdown.total).toLocaleString()}</span></p>
+                            <p><strong>Net Wealth:</strong> <span class="highlight" style="font-size: 16px;">S$ ${Math.round(res.netWealth).toLocaleString()}</span></p>
+                        </div>
+                    `;
+                });
+                document.getElementById('verdictText').innerHTML = `🏆 <strong>${ChartEngine.labels[bestOpt]}</strong> leads with highest total net wealth!`;
+
+                UIController.renderMatrixTable(results, selectedOptions, bestOpt);
+                UIController.renderAuditTrail(results, selectedOptions);
+                UIController.renderBoundaryMatrix(boundary, selectedOptions);
+
+                ChartEngine.drawCrossover(crossover, selectedOptions);
+                ChartEngine.drawTrajectory(results, selectedOptions);
+            }
+
+            static renderMatrixTable(results, selectedOptions, bestOpt) {
+                let container = document.getElementById('matrixTableContainer');
+                container.innerHTML = `
+                    <table class="matrix-table">
+                        <thead><tr><th>Metric</th>${selectedOptions.map(opt => `<th>${ChartEngine.labels[opt]} ${opt === bestOpt ? '🏆' : ''}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            <tr><td><strong>Final Net Wealth (Age 34)</strong></td>${selectedOptions.map(opt => `<td><strong>S$ ${Math.round(results[opt].netWealth).toLocaleString()}</strong></td>`).join('')}</tr>
+                            <tr><td>Liquid Cash & Investments</td>${selectedOptions.map(opt => `<td>S$ ${Math.round(results[opt].liquidCashAndInvestments).toLocaleString()}</td>`).join('')}</tr>
+                            <tr><td>Total CPF Balance</td>${selectedOptions.map(opt => `<td>S$ ${Math.round(results[opt].cpfBreakdown.total).toLocaleString()}</td>`).join('')}</tr>
+                            <tr><td>Total Income Tax Paid</td>${selectedOptions.map(opt => `<td>S$ ${Math.round(results[opt].totalTax).toLocaleString()}</td>`).join('')}</tr>
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            static renderBoundaryMatrix(boundary, selectedOptions) {
+                let container = document.getElementById('boundaryTableContainer'), insights = document.getElementById('boundaryInsights');
+                document.getElementById('boundaryCellDetail').innerHTML = "";
+                if (!boundary) { container.innerHTML = "Select at least 2 options."; insights.innerHTML = ""; return; }
+
+                let html = `<table class="boundary-table"><thead><tr><th>Age 32 Pay ↓ \\ Age 29 Pay →</th>`;
+                boundary.range29.forEach(p29 => html += `<th>S$ ${Math.round(p29).toLocaleString()}/mo</th>`);
+                html += `</tr></thead><tbody>`;
+
+                boundary.gridResults.forEach((row, rIdx) => {
+                    html += `<tr><td><strong>S$ ${Math.round(row.pay32).toLocaleString()}/mo</strong></td>`;
+                    boundary.range29.forEach((p29, cIdx) => {
+                        let cell = row.cells[p29];
+                        let color = ChartEngine.colors[cell.bestOpt];
+                        html += `<td style="background: ${color}22; border-left: 4px solid ${color};" onclick="UIController.inspectBoundaryCell(${rIdx}, ${cIdx})"><strong>${ChartEngine.labels[cell.bestOpt]}</strong><br><span style="font-size: 11px;">(S$ ${Math.round(cell.bestVal).toLocaleString()})</span></td>`;
+                    });
+                    html += `</tr>`;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+                insights.innerHTML = `💡 <strong>Strategic Boundary Analysis:</strong> This matrix maps out how changing your starting pay at Age 29 and jumping pay at Age 32 influences your optimal career move. **Click on any cell in the table above** to instantly generate a detailed performance breakdown for that specific salary pair!`;
+            }
+
+            static inspectBoundaryCell(rIdx, cIdx) {
+                let boundary = UIController.lastSimData ? UIController.lastSimData.boundary : null;
+                if (!boundary) return;
+                let row = boundary.gridResults[rIdx];
+                let p29 = boundary.range29[cIdx];
+                let cellData = row.cells[p29];
+                let selectedOptions = UIController.getSelectedOptions();
+
+                let detailDiv = document.getElementById('boundaryCellDetail');
+                let detailHtml = `
+                    <div class="card" style="border: 2px solid #2980b9;">
+                        <h4>🔍 Inspection: Age 29 Pay @ S$ ${Math.round(p29).toLocaleString()} | Age 32 Pay @ S$ ${Math.round(row.pay32).toLocaleString()}</h4>
+                        <table class="matrix-table" style="margin-top: 10px;">
+                            <thead><tr><th>Strategy</th><th>Net Wealth</th><th>Total Tax</th><th>Total CPF</th></tr></thead>
+                            <tbody>
+                `;
+                selectedOptions.forEach(opt => {
+                    let r = cellData.allResults[opt];
+                    let isBest = (cellData.bestOpt === opt);
+                    detailHtml += `
+                        <tr ${isBest ? 'style="background: var(--winner-bg); font-weight: bold;"' : ''}>
+                            <td>${ChartEngine.labels[opt]} ${isBest ? '🏆' : ''}</td>
+                            <td>S$ ${Math.round(r.netWealth).toLocaleString()}</td>
+                            <td>S$ ${Math.round(r.totalTax).toLocaleString()}</td>
+                            <td>S$ ${Math.round(r.cpfBreakdown.total).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+                detailHtml += `</tbody></table></div>`;
+                detailDiv.innerHTML = detailHtml;
+                detailDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            static renderAuditTrail(results, selectedOptions) {
+                let container = document.getElementById('auditTrailContent'), html = '';
+                selectedOptions.forEach(opt => {
+                    let res = results[opt];
+                    html += `
+                        <div class="audit-accordion">
+                            <div class="audit-header" onclick="UIController.toggleAccordion('auditBody_${opt}', this)">
+                                <span>${ChartEngine.labels[opt]} Audit Breakdown | Net Wealth: S$ ${Math.round(res.netWealth).toLocaleString()}</span><span>▼</span>
+                            </div>
+                            <div id="auditBody_${opt}" class="audit-body">
+                    `;
+                    for (let age in res.auditYears) {
+                        let yr = res.auditYears[age];
+                        let yearTax = yr.tax ? Math.round(yr.tax.totalTax) : 0;
+                        let yearEarnings = yr.totalEarnings ? Math.round(yr.totalEarnings) : 0;
+                        html += `
+                            <div class="year-accordion">
+                                <div class="year-header" onclick="UIController.toggleAccordion('yearBody_${opt}_${age}', this)">
+                                    <span>Age ${age} Breakdown | Tax: S$ ${yearTax.toLocaleString()} | Earnings: S$ ${yearEarnings.toLocaleString()}</span><span>▼</span>
+                                </div>
+                                <div id="yearBody_${opt}_${age}" class="year-body">
+                                    ${yr.grossSalary ? `<div class="calc-block"><div class="calc-block-title"><span>Gross Comp</span></div>S$ ${Math.round(yr.grossSalary).toLocaleString()}</div>` : ''}
+                                    ${yr.tax ? `<div class="calc-block"><div class="calc-block-title"><span>Tax Paid</span></div>S$ ${yearTax.toLocaleString()}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    html += `</div></div>`;
+                });
+                container.innerHTML = html;
+            }
+        }
+        (function () {
+            document.body.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+            UIController.toggleFieldsets();
+        })();
+    </script>
+</body>
+
+</html>
